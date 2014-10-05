@@ -10,6 +10,7 @@
  */
 defined('ABSPATH') or die;
 
+$wp_admin_announce_default_message = 'Set your message in the Admin Announce plugin settings page.';
 
 function wp_admin_announce_enqueue_scripts(){
   wp_enqueue_script('jquery');
@@ -21,13 +22,52 @@ function wp_admin_announce_enqueue_scripts(){
 add_action('admin_enqueue_scripts', 'wp_admin_announce_enqueue_scripts');
 
 function wp_admin_announce_inline(){
+  global $wp_admin_announce_default_message;
   $message = get_option('admin-announce-message-text');
 ?>
 <script type="text/javascript" language="javascript">
 /* <![CDATA[ */
-      this.adminAnnounce(<?php echo($message ? json_encode($message) : "'Set your message in the Admin Announce plugin settings page.'") ?>);
+      this.adminAnnounce(<?php echo($message ? json_encode($message) : "'{$wp_admin_announce_default_message}'") ?>);
 /* ]]> */
 </script>
 <?php
 }
 add_action('in_admin_footer', 'wp_admin_announce_inline');
+
+//* -- Admin Options Execution -- *//
+
+function wp_admin_announce_register_settings(){
+  register_setting('admin-announce-settings-group', 'admin-announce-message-text');
+}
+
+function wp_admin_announce_plugin_menu() {
+  add_menu_page('Admin Announce Plugin Settings', 'Admin Announce', 'administrator', __FILE__, 'wp_admin_announce_settings_page', 'dashicons-megaphone');
+  add_action('admin_init', 'wp_admin_announce_register_settings');
+}
+add_action('admin_menu', 'wp_admin_announce_plugin_menu');
+
+function wp_admin_announce_add_action_links($links){
+  $links[] = '<a href="' . admin_url('?page=' . plugin_basename(__FILE__)) . '">Set Message</a>';
+  return $links;
+}
+add_filter('plugin_action_links_' . plugin_basename(__FILE__), 'wp_admin_announce_add_action_links');
+
+function wp_admin_announce_settings_page(){
+  global $wp_admin_announce_default_message;
+?>
+<div class="wrap">
+  <h2>Admin Announce Settings</h2>
+  <form method="post" action="options.php">
+<?php settings_fields('admin-announce-settings-group'); ?>
+<?php do_settings_sections('admin-announce-settings-group'); ?>
+    <table class="form-table">
+      <tr valign="top">
+      <th scope="row" style="width: 80px">Message:</th>
+        <td><input type="text" name="admin-announce-message-text" size="80" placeholder="<?php echo esc_attr($wp_admin_announce_default_message) ?>" value="<?php echo esc_attr(get_option('admin-announce-message-text')) ?>" /></td>
+      </tr>      
+    </table>
+<?php submit_button(); ?>
+  </form>
+</div>
+<?php  
+}
