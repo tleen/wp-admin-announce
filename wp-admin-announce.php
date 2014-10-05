@@ -11,8 +11,13 @@
 defined('ABSPATH') or die;
 
 $wp_admin_announce_default_message = 'Set your message in the Admin Announce plugin settings page.';
+$wp_admin_announce_colors = array(
+  'background' => '#ffff00',
+  'border' => '#ff0000',
+  'text' => '#000000');
 
 function wp_admin_announce_enqueue_scripts(){
+
   wp_enqueue_script('jquery');
   wp_enqueue_script('wp-admin-announce.js', plugins_url('wp-admin-announce.js', __FILE__ ), array('jquery'));
 
@@ -22,12 +27,26 @@ function wp_admin_announce_enqueue_scripts(){
 add_action('admin_enqueue_scripts', 'wp_admin_announce_enqueue_scripts');
 
 function wp_admin_announce_inline(){
-  global $wp_admin_announce_default_message;
+  global $wp_admin_announce_default_message, $wp_admin_announce_colors;
   $message = get_option('admin-announce-message-text');
 ?>
 <script type="text/javascript" language="javascript">
 /* <![CDATA[ */
-      this.adminAnnounce(<?php echo($message ? json_encode($message) : "'{$wp_admin_announce_default_message}'") ?>);
+  this.adminAnnounce({
+    message: <?php echo($message ? json_encode($message) : "'{$wp_admin_announce_default_message}'") ?>,
+    colors: {
+<?php 
+  foreach($wp_admin_announce_colors as $name => $default){ 
+    $varName = "admin-announce-{$name}-color";
+    $color = get_option($varName);
+    if(!$color) $color = $default;
+?>
+    '<?php echo $name ?>' : '<?php echo $color ?>',
+<?php
+  }
+?>
+    }
+  });
 /* ]]> */
 </script>
 <?php
@@ -37,7 +56,13 @@ add_action('in_admin_footer', 'wp_admin_announce_inline');
 //* -- Admin Options Execution -- *//
 
 function wp_admin_announce_register_settings(){
+  global $wp_admin_announce_colors;
+
   register_setting('admin-announce-settings-group', 'admin-announce-message-text');
+
+  foreach($wp_admin_announce_colors as $name => $default){
+    register_setting('admin-announce-settings-group', "admin-announce-{$name}-color");
+  }
 }
 
 function wp_admin_announce_plugin_menu() {
@@ -52,8 +77,15 @@ function wp_admin_announce_add_action_links($links){
 }
 add_filter('plugin_action_links_' . plugin_basename(__FILE__), 'wp_admin_announce_add_action_links');
 
+function wp_admin_announce_settings_enqueue_scripts(){
+  wp_enqueue_script('jquery');
+  wp_enqueue_style('wp-color-picker');
+  wp_enqueue_script('my-script-handle', plugins_url('wp-admin-announce-settings.js', __FILE__ ), array('jquery', 'wp-color-picker'));
+}
+add_action('admin_enqueue_scripts', 'wp_admin_announce_settings_enqueue_scripts');
+
 function wp_admin_announce_settings_page(){
-  global $wp_admin_announce_default_message;
+  global $wp_admin_announce_default_message, $wp_admin_announce_colors;
 ?>
 <div class="wrap">
   <h2>Admin Announce Settings</h2>
@@ -62,9 +94,23 @@ function wp_admin_announce_settings_page(){
 <?php do_settings_sections('admin-announce-settings-group'); ?>
     <table class="form-table">
       <tr valign="top">
-      <th scope="row" style="width: 80px">Message:</th>
+        <th scope="row" style="width: 80px">Message:</th>
         <td><input type="text" name="admin-announce-message-text" size="80" placeholder="<?php echo esc_attr($wp_admin_announce_default_message) ?>" value="<?php echo esc_attr(get_option('admin-announce-message-text')) ?>" /></td>
-      </tr>      
+      </tr>
+<?php 
+
+  foreach($wp_admin_announce_colors as $name => $default){ 
+    $varName = "admin-announce-{$name}-color";
+    $current = get_option($varName);
+?>
+      <tr valign="top">
+  <th scope="row" style="width: 130px"><?php echo ucfirst($name) ?> Color:</th>
+        <td><input type="text" name="<?php echo $varName ?>" class="admin-announce-color" data-default-color="<?php echo $default ?>" value="<?php echo esc_attr($current ? $current : $default) ?>" /></td>
+      </tr>
+<?php 
+  } 
+
+?>      
     </table>
 <?php submit_button(); ?>
   </form>
