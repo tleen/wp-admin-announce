@@ -11,6 +11,6 @@ This plugin displays a banner on the top of admin screens.
 
 == Description ==
 
-This plugin displays a banner on the top of admin screens. Admins can configure the banner.
+This plugin displays a banner on the top of admin screens. Admins can configure the banner message and colors.
 
 == Changelog ==
