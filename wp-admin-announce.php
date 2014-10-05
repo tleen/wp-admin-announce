@@ -13,7 +13,10 @@ defined('ABSPATH') or die;
 
 function wp_admin_announce_enqueue_scripts(){
   wp_enqueue_script('jquery');
-  wp_enqueue_script('wp-admin-announce.js', plugins_url( 'wp-admin-announce.js', __FILE__ ), array('jquery'));
+  wp_enqueue_script('wp-admin-announce.js', plugins_url('wp-admin-announce.js', __FILE__ ), array('jquery'));
+
+  wp_register_style('wp_admin_announce_css', plugins_url('wp-admin-announce.css', __FILE__ ) );
+  wp_enqueue_style('wp_admin_announce_css');
 }
 add_action('admin_enqueue_scripts', 'wp_admin_announce_enqueue_scripts');
 
