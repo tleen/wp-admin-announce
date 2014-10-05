@@ -72,7 +72,7 @@ function wp_admin_announce_plugin_menu() {
 add_action('admin_menu', 'wp_admin_announce_plugin_menu');
 
 function wp_admin_announce_add_action_links($links){
-  $links[] = '<a href="' . admin_url('?page=' . plugin_basename(__FILE__)) . '">Set Message</a>';
+  $links[] = '<a href="' . admin_url('?page=' . plugin_basename(__FILE__)) . '">Settings</a>';
   return $links;
 }
 add_filter('plugin_action_links_' . plugin_basename(__FILE__), 'wp_admin_announce_add_action_links');
